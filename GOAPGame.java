@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
+import java.util.ArrayList;
 
 // Base action class
 abstract class GOAPAction {
@@ -107,7 +108,7 @@ class EnemyAgent {
 public class GOAPGame extends JPanel implements KeyListener, Runnable {
     int playerX = 100, playerY = 100;
     boolean[] keys = new boolean[256];
-    EnemyAgent enemy = new EnemyAgent(300, 300);
+    List<EnemyAgent> enemies = new ArrayList<>();
 
     public GOAPGame() {
         setPreferredSize(new Dimension(500, 500));
@@ -118,6 +119,12 @@ public class GOAPGame extends JPanel implements KeyListener, Runnable {
         frame.pack();
         frame.setVisible(true);
         frame.addKeyListener(this);
+
+        // Add multiple enemies
+        enemies.add(new EnemyAgent(300, 300));
+        enemies.add(new EnemyAgent(200, 400));
+        enemies.add(new EnemyAgent(400, 200));
+
         new Thread(this).start();
     }
 
@@ -139,9 +146,11 @@ public class GOAPGame extends JPanel implements KeyListener, Runnable {
         if (keys[KeyEvent.VK_UP]) playerY -= 5;
         if (keys[KeyEvent.VK_DOWN]) playerY += 5;
 
-        enemy.playerX = playerX;
-        enemy.playerY = playerY;
-        enemy.update();
+        for (EnemyAgent enemy : enemies) {
+            enemy.playerX = playerX;
+            enemy.playerY = playerY;
+            enemy.update();
+        }
     }
 
     public void paintComponent(Graphics g) {
@@ -149,16 +158,15 @@ public class GOAPGame extends JPanel implements KeyListener, Runnable {
 
         g.setColor(Color.GREEN);
         g.fillRect(playerX, playerY, 20, 20);
-        g.drawString("Player HP: " + enemy.playerHealth, 10, 20);
+        g.drawString("Player HP", 10, 20);
 
-        g.setColor(Color.BLUE);
-        g.fillRect((int) enemy.x, (int) enemy.y, 20, 20);
-        g.drawString("Enemy HP: " + enemy.health, 10, 40);
-
-        // Draw current action debug overlay
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("SansSerif", Font.BOLD, 12));
-        g.drawString("AI: " + enemy.currentAction, (int) enemy.x - 10, (int) enemy.y - 5);
+        for (EnemyAgent enemy : enemies) {
+            g.setColor(Color.BLUE);
+            g.fillRect((int) enemy.x, (int) enemy.y, 20, 20);
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("SansSerif", Font.BOLD, 12));
+            g.drawString("AI: " + enemy.currentAction, (int) enemy.x - 10, (int) enemy.y - 5);
+        }
     }
 
     public void keyPressed(KeyEvent e) {
